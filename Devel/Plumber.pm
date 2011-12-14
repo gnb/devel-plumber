@@ -2,13 +2,13 @@ package Devel::Plumber;
 
 use strict;
 use warnings;
+no warnings 'portable';  # Support for 64-bit ints required
 use vars qw($VERSION);
 $VERSION = '0.2';
 use threads;
 use IO::File;
 use Devel::GDB;
 use Tree::Interval;
-use Data::Dumper;
 
 # states of a block
 my $FREE = 0;
