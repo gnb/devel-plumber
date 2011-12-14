@@ -1,0 +1,8 @@
+*.o
+t001
+t002
+*.actual
+*.expected
+*.stderr
+*.core
+expected-blocks.dat

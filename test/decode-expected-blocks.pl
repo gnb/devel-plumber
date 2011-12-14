@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $filename = shift || 'expected-blocks.dat';
+my $reclen = 16;
+my $pack_template = "QLL";
+my @state_names = qw(free LEAKED MAYBE_LEAKED reached);
+
+open EB, '<', $filename
+    or die "Cannot open $filename for reading: $!";
+while (read(EB, $_, $reclen))
+{
+    my ($addr, $size, $state) = unpack($pack_template);
+    printf "0x%016x 0x%x %s\n",
+	$addr, $size, $state_names[$state];
+}
+close EB;
