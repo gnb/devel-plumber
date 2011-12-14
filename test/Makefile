@@ -22,7 +22,7 @@ run: $(TESTS)
 	    ( ulimit -c unlimited ; ./$$test ; exit 0) ;\
 	    mv core* $$test.core ;\
 	    ./decode-expected-blocks.pl > $$test.expected ;\
-	    ../plumber.pl --dump-blocks $$test $$test.core > $$test.actual 2>$$test.stderr ;\
+	    perl ../plumber --dump-blocks $$test $$test.core > $$test.actual 2>$$test.stderr ;\
 	    res=PASS; \
 	    diff -U0 $$test.expected $$test.actual || res=FAIL ;\
 	    echo "$$res $$test" ;\
