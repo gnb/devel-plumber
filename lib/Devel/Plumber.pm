@@ -17,6 +17,66 @@ my $MAYBE = 2;
 my $REACHED = 3;
 my @state_names = qw(free LEAKED MAYBE_LEAKED reached);
 
+=head1 NAME
+
+Devel::Plumber - memory leak finder for C programs
+
+=head1 SYNOPSIS
+
+ use Devel::Plumber;
+ 
+ my $joe = new Devel::Plumber(binfile => 'myprogram',
+			      pid => 12345);
+ 
+ $joe = new Devel::Plumber(binfile => 'myprogram',
+			   corefile => 'core.12345');
+ 
+ $joe->find_leaks();
+ $joe->report_leaks();
+
+=head1 DESCRIPTION
+
+Devel::Plumber is a memory leak finder for C programs, implemented in
+Perl.  It uses GDB to walk internal glibc heap structures, so it can
+work on either a live process or a core file.
+
+Compared to Valgrind, Purify, or various malloc debugging libraries, Devel::Plumber
+
+=over
+
+=item *
+is very slow,
+
+=item *
+does not provide stack traces showing how memory was allocated,
+
+=item *
+does not work on multi-threaded programs (although this could be fixed).
+
+=back
+
+However Devel::Plumber is much easier to use in a production environment
+(rather than a test environment) because the program under test
+
+=over
+
+=item *
+does not require any special building or instrumentation before running,
+
+=item *
+does not need to be launched specially,
+
+=item *
+can already be running, for any length of time, or
+may have already crashed and left a core,
+
+=item *
+will continue unmolested after Devel::Plumber has finished.
+
+=back
+
+=cut
+
 sub new
 {
     my ($class, %params) = @_;
@@ -612,5 +672,11 @@ sub get_leaks
     return \@leaks;
 }
 
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+=head1 AUTHOR
+
+Greg Banks <gnb@fastmail.fm>.
+
+=cut
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 1;
