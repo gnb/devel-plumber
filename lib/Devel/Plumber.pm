@@ -40,40 +40,58 @@ Devel::Plumber is a memory leak finder for C programs, implemented in
 Perl.  It uses GDB to walk internal glibc heap structures, so it can
 work on either a live process or a core file.
 
-Compared to Valgrind, Purify, or various malloc debugging libraries, Devel::Plumber
+Devel::Plumber treats the C heap of the program under test as a
+collection of non-overlapping blocks, and classifies them into
+one of four states.
 
 =over
 
-=item *
-is very slow,
+=item Free
 
-=item *
-does not provide stack traces showing how memory was allocated,
+The block is not allocated.
 
-=item *
-does not work on multi-threaded programs (although this could be fixed).
+=item Leaked
+
+The block is allocated but there are no pointers to any address in it,
+so the program cannot reach it.
+
+=item Maybe Leaked
+
+The block is allocated and there are pointers to addresses within it,
+but no pointers to the start of it.  The program might be able to reach
+it in some unobvious way via those pointers (e.g. using pointer
+arithmetic), or the pointers may be dangling pointers to earlier
+generations of blocks.  Devel::Plumber cannot tell the difference
+between these possibilities.
+
+=item Reached
+
+The block is allocated and there are pointers to the start of the block.
 
 =back
 
-However Devel::Plumber is much easier to use in a production environment
-(rather than a test environment) because the program under test
+Devel::Plumber proceeds in two main phases.  In the first phase, the
+glibc internal heap structures are walked to discover all the blocks.
+Unallocated blocks are set to Free state at this time and allocated
+blocks are initially set to Leaked state.  In the second phase,
+reachable blocks are marked.  All the I<.data> and I<.bss> sections in
+the program (and all loaded shared libraries) are scanned for pointers.
+If a pointer points to the start of a block, the block is set to Reached
+state; if it points into a Leaked block, the block is set to Maybe
+Leaked state.  In either case, the block's contents are also scanned for
+pointers.  After the second phase is complete, any blocks still in
+Leaked state are definitely leaked.
+
+=head1 METHODS
 
 =over
 
-=item *
-does not require any special building or instrumentation before running,
+=item I<Devel::Plumber-E<gt>new(%parameters)>
 
-=item *
-does not need to be launched specially,
-
-=item *
-can already be running, for any length of time, or
-may have already crashed and left a core,
-
-=item *
-will continue unmolested after Devel::Plumber has finished.
-
-=back
+Create a new Devel::Plumber object.  Devel::Plumber uses an entirely
+object-oriented interface.  The object can be created empty and set up
+later by calling the I<setup> method, or the parameters to I<setup> may
+be passed directly.  See the description of I<setup>.
 
 =cut
 
@@ -95,6 +113,14 @@ sub new
     return $self;
 }
 
+=item I<close()>
+
+Shut down the Devel::Plumber object and it's captive GDB.  It's
+usually not necessary to call this, dropping the last reference
+has the same effect.
+
+=cut
+
 sub close
 {
     my ($self) = @_;
@@ -114,6 +140,42 @@ sub DESTROY
     my ($self) = @_;
     $self->close();
 }
+
+=item I<setup(%parameters)>
+
+Initialise the Devel::Plumber object, and start a captive GDB session.
+Errors are handled using I<die>.  The available parameters are
+
+=over
+
+=item I<binfile>
+
+The filename of the program's executable image, e.g.
+I</usr/cyrus/bin/imapd>.  Used with GDB's I<file> command.  Required.
+
+=item I<corefile>
+
+The filename of a core file dumped by the program.  Used with GDB's
+I<core-file> command.  One of I<corefile> or I<pid> is required.
+
+=item I<pid>
+
+The process id of the running program.  Used with GDB's I<attach>
+command.  One of I<corefile> or I<pid> is required.
+
+=item I<progress>
+
+Non-zero values cause a progress indicator to be emitted to stderr.
+Optional.
+
+=item I<verbose>
+
+Non-zero values cause debugging messages to be emitted to stderr.
+Optional.
+
+=back
+
+=cut
 
 sub setup
 {
@@ -503,6 +565,14 @@ sub _mark_blocks
     }
 }
 
+=item I<find_leaks()>
+
+Perform the leak finding algorithm.  Errors are handled using I<die>.
+This can be quite slow, use the I<progress> optional parameter to
+I<setup> to give a progress indicator.
+
+=cut
+
 sub find_leaks
 {
     my ($self) = @_;
@@ -604,6 +674,23 @@ sub _hexdump
     }
 }
 
+=item I<report_leaks()>
+
+Emits a detailed human-readable leak report to stdout.  The report
+comprises two sections, LEAKS and SUMMARY.
+
+The LEAKS section shows each leaked or maybe-leaked block, including
+it's address, size, and contents.  Block contents are shown as hex
+words, ASCII octets, and an annotation indicating whether the word is a
+pointer to symbol in the I<.data> I<.bss> or I<.text> sections, or to a
+block.  These annotations are often useful in working out what code
+allocated the block.
+
+The SUMMARY section summarises the total number of blocks and bytes in
+each of the states: Free, Leaked, Maybe Leaked, and Reached.
+
+=cut
+
 sub report_leaks
 {
     my ($self) = @_;
@@ -637,6 +724,13 @@ sub report_leaks
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+=item I<dump_blocks()>
+
+Emits a text report showing all the heap blocks, to stdout.  Useful for
+testing Devel::Plumber.
+
+=cut
+
 sub dump_blocks
 {
     my ($self) = @_;
@@ -651,6 +745,39 @@ sub dump_blocks
 }
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+=item I<get_leaks()>
+
+Get all the leaked blocks found by I<find_leaks()>.
+Returns a reference to an array of hashes containing
+
+=over
+
+=item I<addr>
+
+Address of the block.
+
+=item I<size>
+
+Size of the block in bytes.
+
+=item I<state>
+
+An integer representing the state of the block, one of
+
+=over
+
+=item *
+1 = Leaked.
+
+=item *
+2 = Maybe Leaked.
+
+=back
+
+=back
+
+=cut
 
 sub get_leaks
 {
@@ -673,9 +800,35 @@ sub get_leaks
 }
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+=back
+
+=head1 PLATFORMS
+
+X86 and x86-64 Linux with glibc.  Devel::Plumber potentially could be
+ported to any platform that supports GDB, but only if the C library's
+heap structures could be discovered.
+
+=head1 CAVEATS
+
+For GDB to be able to access internal glibc data structures, it needs
+debugging symbols.  Most Linux distributions ship a stripped glibc but
+also provide a separate package containing just the debugging information,
+in a directory where GDB knows how to find it.  That package is usually
+not installed by default; for Devel::Plumber to work you need to install
+that package.  For example, on Ubuntu
+
+ ubuntu% sudo apt-get install libc6-dbg
+
+Note that in this case you do not need to restart the program, the debug
+package contains no information that is used at runtime.
+
 =head1 AUTHOR
 
-Greg Banks <gnb@fastmail.fm>.
+Greg Banks <gnb@fastmail.fm>
+
+=head1 SEE ALSO
+
+B<plumber>(1).
 
 =cut
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
