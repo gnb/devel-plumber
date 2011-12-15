@@ -1,0 +1,15 @@
+Source: libdevel-plumber-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 7), perl
+Maintainer: Greg Banks <gnb@fastmail.fm>
+Standards-Version: 3.8.4
+Homepage: http://search.cpan.org/dist/Devel-Plumber/
+
+Package: libdevel-plumber-perl
+Architecture: any
+Depends: ${misc:Depends}, ${perl:Depends}, libc6-dbg, libdevel-gdb-perl, libexpect-perl
+Description: memory leak finder for C programs
+ Devel::Plumber is a memory leak finder for C programs, implemented in Perl.
+ It uses GDB to walk internal glibc heap structures, so it can work on either
+ a live process or a core file.
