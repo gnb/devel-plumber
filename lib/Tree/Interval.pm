@@ -7,95 +7,35 @@ $VERSION = '0.5';
 
 =head1 NAME
 
-Tree::Interval - Perl implementation of Red/Black tree, a type of balanced tree.
+Tree::Interval - Perl implementation of an interval tree
 
 =head1 SYNOPSIS
 
-  use Tree::Interval;
-  
-  my $t = new Tree::Interval;
-  $t->insert(3, 'cat');
-  $t->insert(4, 'dog');
-  my $v = $t->find(4);
-  my $min = $t->min;
-  my $max = $t->max;
-  $t->delete(3);
-  $t->print;
+ use Tree::Interval;
+ 
+ my $t = Tree::Interval->new();
+ $t->insert(3, 5, 'cat');
+ $t->insert(7, 15, 'dog');
+ my $v = $t->find(4);
+ my $min = $t->min();
+ my $max = $t->max();
 
 =head1 DESCRIPTION
 
-This is a perl implementation of the Red/Black tree algorithm found in the book
-"Algorithms", by Cormen, Leiserson & Rivest (more commonly known as "CLR" or
-"The White Book").  A Red/Black tree is a binary tree which remains "balanced"-
-that is, the longest length from root to a node is at most one more than the
+This is a perl implementation of an interval tree for non-overlapping
+intervals, based on Tree::RedBlack by Benjamin Holzman <bholzman@earthlink.net>.
+An interval tree is a binary tree which remains "balanced" i.e.
+the longest length from root to a node is at most one more than the
 shortest such length.  It is fairly efficient; no operation takes more than
-O(lg(n)) time.
+O(log(N)) time.
 
 A Tree::Interval object supports the following methods:
 
-=over 4
+=over
 
-=item new ()
+=item I<Tree::Interval-E<gt>new()>
 
 Creates a new Interval tree object.
-
-=item root ()
-
-Returns the root node of the tree.  Note that this will either be undef if no
-nodes have been added to the tree, or a Tree::Interval::Node object.  See the
-L<Tree::Interval::Node> manual page for details on the Node object.
-
-=item cmp (&)
-
-Use this method to set a comparator subroutine.  The tree defaults to lexical
-comparisons.  This subroutine should be just like a comparator subroutine to
-sort, except that it doesn't do the $a, $b trick; the two elements to compare
-will just be the first two items on the stack.
-
-=item insert ($;$)
-
-Adds a new node to the tree.  The first argument is the key of the node, the
-second is its value.  If a node with that key already exists, its value is
-replaced with the given value and the old value is returned.  Otherwise, undef
-is returned.
-
-=item delete ($)
-
-The argument should be either a node object to delete or the key of a node
-object to delete. WARNING!!! THIS STILL HAS BUGS!!!
-
-=item find ($)
-
-Searches the tree to find the node with the given key.  Returns the value of
-that node, or undef if a node with that key isn't found.  Note, in particular,
-that you can't tell the difference between finding a node with value undef and
-not finding a node at all.  If you want to determine if a node with a given key
-exists, use the node method, below.
-
-=item node ($)
-
-Searches the tree to find the node with the given key.  Returns that node
-object if it is found, undef otherwise.  The node object is a
-Tree::Interval::Node object.
-
-=item min ()
-
-Returns the node with the minimal key.
-
-=item max ()
-
-Returns the node with the maximal key.
-
-=back
-
-=head1 AUTHOR
-
-Greg Banks <gnb@fmeh.org>, heavily based on Tree::RedBlack by
-Benjamin Holzman <bholzman@earthlink.net>
-
-=head1 SEE ALSO
-
-Tree::Interval::Node
 
 =cut
 
@@ -105,12 +45,36 @@ sub new {
 		'root' => undef}, $type;
 }
 
+
 sub DESTROY { if ($_[0]->{'root'}) { $_[0]->{'root'}->DESTROY } }
+
+=item I<root()>
+
+Returns the root node of the tree.  Note that this will either be I<undef> if no
+nodes have been added to the tree, or a Tree::Interval::Node object.
+
+=cut
 
 sub root {
   my $this = shift;
   return $this->{'root'};
 }
+
+=item I<cmp(coderef)>
+
+Use this method to set a comparator subroutine.  The tree defaults to
+builtin Perl numerical comparisons.  This subroutine should be just like
+a comparator subroutine to I<sort>, except that it doesn't do the $a, $b
+trick; the two elements to compare will just be the first two items on
+the stack.  For example,
+
+ sub example_comparator
+ {
+    my ($ka, $kb) = @_;
+    return $ka <=> $kb;
+ }
+
+=cut
 
 sub cmp {
   my($this, $cr) = @_;
@@ -122,6 +86,15 @@ sub _default_cmp
   my($ka, $kb) = @_;
   return $ka <=> $kb;
 }
+
+=item I<insert(low, high, value)>
+
+Adds a new node to the tree.  The first two arguments are an interval
+which forms the key of the node, the third is its value and may not be
+I<undef>.  Overlapping or duplicate keys are an error.  Errors are
+handled using I<die>.  Nothing is returned.
+
+=cut
 
 sub insert {
   my($this, $low, $high, $value) = @_;
@@ -234,6 +207,14 @@ sub right_rotate {
   $node->parent($child);
 }
 
+# TODO: not translated from plain Red/Black to Interval
+# =item I<delete ($)
+# 
+# The argument should be either a node object to delete or the key of a node
+# object to delete. WARNING!!! THIS STILL HAS BUGS!!!
+# 
+# =cut
+
 sub delete {
   my($this, $node_or_key) = @_;
   my $node;
@@ -329,6 +310,12 @@ sub delete_fixup {
   $x->color(0);
 }
 
+=item I<min()>
+
+Returns the node with the minimal key.
+
+=cut
+
 sub min {
   my $this = shift;
   if ($this->{'root'}) {
@@ -341,6 +328,12 @@ sub min {
   return;
 }
 
+=item I<max()>
+
+Returns the node with the maximal key.
+
+=cut
+
 sub max {
   my $this = shift;
   if ($this->{'root'}) {
@@ -352,6 +345,14 @@ sub max {
   }
   return;
 }
+
+=item I<find(key)>
+
+Searches the tree to find the node whose interval contains the given
+I<key>.  Returns the value of that node, or I<undef> if a node with that
+key isn't found.
+
+=cut
 
 sub find {
   my($this, $key) = @_;
@@ -381,6 +382,12 @@ sub _values {
     _values($node->right, $res);
 }
 
+=item I<values()>
+
+Returns a list of all the node values.
+
+=cut
+
 sub values {
   my($this) = @_;
   my $res = [];
@@ -388,4 +395,12 @@ sub values {
   return @$res;
 }
 
+=back
+
+=head1 AUTHOR
+
+Greg Banks <gnb@fmeh.org>, heavily based on Tree::RedBlack by
+Benjamin Holzman <bholzman@earthlink.net>
+
+=cut
 1;
