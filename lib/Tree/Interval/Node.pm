@@ -1,5 +1,22 @@
 package Tree::Interval::Node;
-
+#
+# Copyright (C) 2011 by Opera Software Australia Pty Ltd
+#
+# This library is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
+# Derived from Tree::RedBlack by Benjamin Holzman <bholzman@earthlink.net>
+# which bore this message:
+#
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the Artistic License, a copy of which can be
+#     found with perl.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     Artistic License for more details.
+#
 use strict;
 
 sub new {

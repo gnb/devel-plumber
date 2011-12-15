@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2011 by Opera Software Australia Pty Ltd
+ *
+ * This library is free software; you can redistribute it and/or modify
+ * it under the same terms as Perl itself.
+ */
 
 /* this matches up with Plumber's internal states */
 enum block_state { FREE, LEAKED, MAYBE, REACHED };

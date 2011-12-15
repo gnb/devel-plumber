@@ -1,4 +1,10 @@
 package Devel::Plumber;
+#
+# Copyright (C) 2011 by Opera Software Australia Pty Ltd
+#
+# This library is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 
 use strict;
 use warnings;
@@ -825,6 +831,13 @@ package contains no information that is used at runtime.
 =head1 AUTHOR
 
 Greg Banks <gnb@fastmail.fm>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2011 by Opera Software Australia Pty Ltd
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
