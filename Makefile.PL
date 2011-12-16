@@ -11,4 +11,9 @@ WriteMakefile(
     NAME	    => 'Devel::Plumber',
     VERSION_FROM    => 'lib/Devel/Plumber.pm',
     EXE_FILES	    => [ 'plumber' ],
+    PREREQ_PM => {
+	'Tree::Interval' => 0,
+	'Devel::GDB'     => 0,
+	'threads'	 => 0,
+    },
 );
