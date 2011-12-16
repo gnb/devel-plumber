@@ -31,14 +31,14 @@ Devel::Plumber - memory leak finder for C programs
 
  use Devel::Plumber;
  
- my $joe = new Devel::Plumber(binfile => 'myprogram',
-			      pid => 12345);
+ my $mario = new Devel::Plumber(binfile => 'myprogram',
+			        pid => 12345);
  
- $joe = new Devel::Plumber(binfile => 'myprogram',
-			   corefile => 'core.12345');
+ $mario = new Devel::Plumber(binfile => 'myprogram',
+			     corefile => 'core.12345');
  
- $joe->find_leaks();
- $joe->report_leaks();
+ $mario->find_leaks();
+ $mario->report_leaks();
 
 =head1 DESCRIPTION
 
