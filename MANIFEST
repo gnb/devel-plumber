@@ -1,7 +1,4 @@
 lib/Devel/Plumber.pm		Devel::Plumber
-lib/Tree/Interval.pm		Tree::Interval
-lib/Tree/Interval/Node.pm	Helper classs for Tree::Interval
-lib/Tree/Interval/Test.pm	Test cases for Tree::Interval
 Makefile.PL			Makefile
 MANIFEST			This list of files
 plumber				Main executable

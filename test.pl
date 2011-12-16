@@ -10,10 +10,6 @@ use strict;
 use warnings;
 use IO::File;
 use lib 'lib';
-use Test::Unit::TestRunner;
-
-my $testrunner = Test::Unit::TestRunner->new();
-$testrunner->start('Tree::Interval::Test');
 
 my @cmds = (
     "make -C test run",
