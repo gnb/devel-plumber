@@ -25,10 +25,11 @@ run: $(TESTS)
 	$(RM) core*
 	@ec=0; for test in $(TESTS) ; do \
 	    echo "==== $$test" ;\
+	    echo "The next command will dump core, don't worry it's supposed to" ;\
 	    ( ulimit -c unlimited ; ./$$test ; exit 0) ;\
 	    mv core* $$test.core ;\
 	    ./decode-expected-blocks.pl > $$test.expected ;\
-	    perl ../plumber --dump-blocks $$test $$test.core > $$test.actual 2>$$test.stderr ;\
+	    perl ../plumber --dump-blocks $$test $$test.core > $$test.actual ;\
 	    res=PASS; \
 	    diff -U0 $$test.expected $$test.actual || res=FAIL ;\
 	    echo "$$res $$test" ;\
