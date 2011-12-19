@@ -1,3 +1,9 @@
+libdevel-plumber-perl (0.3.3-1) unstable; urgency=low
+
+  * make CPAN testers report more useful
+
+ -- Greg Banks <gnb@fastmail.fm>  Mon, 19 Dec 2011 13:47:24 +1100
+
 libdevel-plumber-perl (0.3.2-1) unstable; urgency=low
 
   * CPAN upload tweaks
