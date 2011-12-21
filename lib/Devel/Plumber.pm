@@ -10,7 +10,7 @@ use strict;
 use warnings;
 no warnings 'portable';  # Support for 64-bit ints required
 use vars qw($VERSION);
-$VERSION = '0.3.3';
+$VERSION = '0.3.4';
 use threads;
 use IO::File;
 use Devel::GDB;
