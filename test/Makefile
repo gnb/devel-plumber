@@ -11,6 +11,7 @@ TESTS= \
 
 CC=	gcc
 CFLAGS=	-Wall -g
+PERL=	perl
 all: $(TESTS)
 
 t%: t%.c framework.o framework.h
@@ -29,7 +30,7 @@ run: $(TESTS)
 	    ( ulimit -c unlimited ; ./$$test ; exit 0) ;\
 	    mv core* $$test.core ;\
 	    ./decode-expected-blocks.pl > $$test.expected ;\
-	    perl ../plumber --dump-blocks $$test $$test.core > $$test.actual ;\
+	    $(PERL) ../plumber --dump-blocks $$test $$test.core > $$test.actual ;\
 	    res=PASS; \
 	    diff -U0 $$test.expected $$test.actual || res=FAIL ;\
 	    echo "$$res $$test" ;\

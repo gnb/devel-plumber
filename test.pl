@@ -12,7 +12,7 @@ use IO::File;
 use lib 'lib';
 
 my @cmds = (
-    "make -C test run",
+    "make -C test PERL=\"$^X\" run",
 );
 
 foreach my $cmd (@cmds)
